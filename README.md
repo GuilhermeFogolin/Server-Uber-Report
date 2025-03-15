@@ -1,10 +1,16 @@
-# Node.js template
+# 🛜 Servidor para o Uber Report
 
-This is a Node.js project.
+Servidor para desenvolvimento backend do projeto Uber Report.
 
-Add your [configuration](https://codesandbox.io/docs/projects/learn/setting-up/tasks) to optimize it for [CodeSandbox](https://codesandbox.io/p/dashboard).
+---
 
-## Resources
+## ⚙️ Operações
 
-- [CodeSandbox — Docs](https://codesandbox.io/docs/learn)
-- [CodeSandbox — Discord](https://discord.gg/Ggarp3pX5H)
+✅ Rotas para login e cadastro de usuários.
+
+✅ Rotas para a criação de alertas (ex.: queda de árvores, confronto policial, acidentes e etc.).
+
+---
+
+## ℹ️ Informações extras no repositório oficial do [Uber Report](https://github.com/2025-1-NCC3/Projeto12)
+
