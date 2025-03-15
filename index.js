@@ -41,7 +41,7 @@ db.run(`CREATE TABLE IF NOT EXISTS alertas (
   fk_idUser  INTEGER REFERENCES users (idUser) NOT NULL
 )`);
 
-// Rotas para usuários
+// Rotas para usuários - PRIMEIRA ENTREGA NÃO VAI SER USADO!
 
 // Buscando usuários
 
@@ -239,9 +239,9 @@ app.post("/criarAlerta", function (req, res) {
 
   // Validação dos campos obrigatórios
   if (
-    !nome ||
+    !nome || // Clima adverso OU Acidentes OU Crimes
     !dataHora ||
-    !tipoAlerta ||
+    !tipoAlerta || // Se clima (Alagamento, deslizamento, temporal) | Se acidentes (Carros, pedestres) | Se crimes (Assaltos, confrontos, arrastão)
     !latitude ||
     !longitude ||
     !fk_idUser
