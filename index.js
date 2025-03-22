@@ -8,11 +8,13 @@ var bodyParser = require("body-parser");
 var sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
 const saltRounds = 10; // 10 rodadas por salt
+var morgan = require("morgan"); // logs do servidor
 
 var port = process.env.PORT || 3000;
 var CAMINHO_DB = "uberDB.db";
 
 // Middleware
+app.use(morgan("dev"));
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -32,13 +34,13 @@ db.run(`CREATE TABLE IF NOT EXISTS users (
 )`);
 
 db.run(`CREATE TABLE IF NOT EXISTS alertas (
-  idAlerta   INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
-  nome       TEXT    NOT NULL,
-  dataHora   TEXT    NOT NULL,
-  tipoAlerta TEXT    NOT NULL,
-  latitude   REAL    NOT NULL,
-  longitude  REAL    NOT NULL,
-  fk_idUser  INTEGER REFERENCES users (idUser) NOT NULL
+  idAlerta         INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+  nomeAlerta       TEXT    NOT NULL,
+  dataHoraAlerta   TEXT    NOT NULL,
+  tipoAlerta       TEXT    NOT NULL,
+  latitude         REAL    NOT NULL,
+  longitude        REAL    NOT NULL,
+  fk_idUser        INTEGER REFERENCES users (idUser) NOT NULL
 )`);
 
 // Rotas para usuários - PRIMEIRA ENTREGA NÃO VAI SER USADO!
@@ -235,50 +237,73 @@ app.get("/alertas/:id", function (req, res) {
 // Criando alertas
 
 app.post("/criarAlerta", function (req, res) {
-  var { nome, dataHora, tipoAlerta, latitude, longitude, fk_idUser } = req.body;
+  var {
+    nomeAlerta,
+    dataHoraAlerta,
+    tipoAlerta,
+    latitude,
+    longitude,
+    fk_idUser,
+  } = req.body;
+
+  console.log("Recebendo solicitação para criar alerta", req.body);
 
   // Validação dos campos obrigatórios
   if (
-    !nome || // Clima adverso OU Acidentes OU Crimes
-    !dataHora ||
+    !nomeAlerta || // Clima adverso OU Acidentes OU Crimes
+    !dataHoraAlerta ||
     !tipoAlerta || // Se clima (Alagamento, deslizamento, temporal) | Se acidentes (Carros, pedestres) | Se crimes (Assaltos, confrontos, arrastão)
     !latitude ||
     !longitude ||
     !fk_idUser
   ) {
+    console.error("Erro: Campos obrigatórios faltando", req.body);
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
   // Validação se latitude e longitude são números
   if (isNaN(latitude) || isNaN(longitude)) {
+    console.error("Erro: Latitude ou longitude não são números", {
+      latitude,
+      longitude,
+    });
     return res
       .status(400)
       .json({ error: "Latitude e longitude devem ser números." });
   }
 
+  console.log("Validando existência do usuário com ID:", fk_idUser);
   // Validando se o usuário existe
   const sqlBuscaUser = `SELECT * FROM users WHERE idUser = ?`;
   db.get(sqlBuscaUser, [fk_idUser], (err, row) => {
     if (err) {
+      console.error("Erro ao buscar usuário no banco de dados", err.message);
       return res
         .status(500)
         .json({ error: "Erro ao buscar usuário", details: err.message });
     }
     if (!row) {
+      console.warn("Usuário não encontrado", fk_idUser);
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
+    console.log("Usuário encontrado. Inserindo alerta...");
     // Inserindo o novo alerta
-    const sqlInsert = `INSERT INTO alertas (nome, dataHora, tipoAlerta, latitude, longitude, fk_idUser) VALUES (?, ?, ?, ?, ?, ?)`;
+    const sqlInsert = `INSERT INTO alertas (nomeAlerta, dataHoraAlerta, tipoAlerta, latitude, longitude, fk_idUser) VALUES (?, ?, ?, ?, ?, ?)`;
     db.run(
       sqlInsert,
-      [nome, dataHora, tipoAlerta, latitude, longitude, fk_idUser],
+      [nomeAlerta, dataHoraAlerta, tipoAlerta, latitude, longitude, fk_idUser],
       function (err) {
         if (err) {
+          console.error(
+            "Erro ao inserir alerta no banco de dados",
+            err.message
+          );
           return res
             .status(500)
             .json({ error: "Erro ao criar alerta", details: err.message });
         }
+        console.log("Alerta criado com sucesso! ID:", this.lastID);
         res.status(201).json({
           message: "Alerta criado com sucesso!",
           idAlerta: this.lastID,
@@ -292,12 +317,19 @@ app.post("/criarAlerta", function (req, res) {
 
 app.put("/alertas/:id", function (req, res) {
   const idAlerta = req.params.id; // Pega o ID da URL
-  var { nome, dataHora, tipoAlerta, latitude, longitude, fk_idUser } = req.body;
+  var {
+    nomeAlerta,
+    dataHoraAlerta,
+    tipoAlerta,
+    latitude,
+    longitude,
+    fk_idUser,
+  } = req.body;
 
   // Validação dos campos obrigatórios
   if (
-    !nome ||
-    !dataHora ||
+    !nomeAlerta ||
+    !dataHoraAlerta ||
     !tipoAlerta ||
     !latitude ||
     !longitude ||
@@ -341,7 +373,15 @@ app.put("/alertas/:id", function (req, res) {
       const sqlUpdate = `UPDATE alertas SET nome = ?, dataHora = ?, tipoAlerta = ?, latitude = ?, longitude = ?, fk_idUser = ? WHERE idAlerta = ?`;
       db.run(
         sqlUpdate,
-        [nome, dataHora, tipoAlerta, latitude, longitude, fk_idUser, idAlerta],
+        [
+          nomeAlerta,
+          dataHoraAlerta,
+          tipoAlerta,
+          latitude,
+          longitude,
+          fk_idUser,
+          idAlerta,
+        ],
         function (err) {
           if (err) {
             return res.status(500).json({
