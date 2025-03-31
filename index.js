@@ -31,7 +31,7 @@ db.run(`CREATE TABLE IF NOT EXISTS users (
     senha     TEXT    NOT NULL,
     telefone  INTEGER NOT NULL,
     tipo      TEXT    NOT NULL
-)`);
+)`); // Atualizar CNH e data de validada: Validar esquema no Figma e mudar database
 
 db.run(`CREATE TABLE IF NOT EXISTS alertas (
   idAlerta         INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
