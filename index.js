@@ -30,8 +30,8 @@ db.run(`CREATE TABLE IF NOT EXISTS users (
     cpf       INTEGER UNIQUE NOT NULL,
     senha     TEXT    NOT NULL,
     telefone  INTEGER NOT NULL,
-    tipo      TEXT    NOT NULL
-)`);
+    tipo      TEXT    NOT NULL 
+)`); // Atualizar CNH e data de validade
 
 db.run(`CREATE TABLE IF NOT EXISTS alertas (
   idAlerta         INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
