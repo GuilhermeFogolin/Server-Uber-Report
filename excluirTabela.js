@@ -12,3 +12,11 @@ db.run("DROP TABLE IF EXISTS alertas", (err) => {
     console.log("Tabela 'alertas' excluída com sucesso.");
   }
 });
+
+db.run("DROP TABLE IF EXISTS users", (err) => {
+  if (err) {
+    console.error("Erro ao excluir tabela:", err.message);
+  } else {
+    console.log("Tabela 'users' excluída com sucesso.");
+  }
+});
