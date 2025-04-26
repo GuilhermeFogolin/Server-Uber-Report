@@ -13,7 +13,8 @@ module.exports = (app) => {
         .json({ error: "As credenciais são obrigatórias." });
     }
 
-    // Verifica se as credenciais estão corretas (substitua pelos valores reais)
+    // Verifica se as credenciais estão corretas
+    
     const CREDENCIAL_CHAVE1 = "uber_report_key";
     const CREDENCIAL_CHAVE2 = "2025uberreport";
 
