@@ -1,14 +1,18 @@
 # 🛜 Servidor para o Uber Report
 
-Servidor para desenvolvimento backend do projeto Uber Report.
+Servidor em JavaScript para desenvolvimento backend do projeto Uber Report.
 
 ---
 
 ## ⚙️ Operações
 
-✅ Rotas para login e cadastro de usuários.
+🙎‍♂️ Rotas para login e cadastro de usuários.
 
-✅ Rotas para a criação de alertas (ex.: queda de árvores, confronto policial, acidentes e etc.).
+🚨 Rotas para a criação de alertas (ex.: queda de árvores, confronto policial, acidentes e etc.).
+
+🗝️ Criptografia de dados sensíveis. 
+
+📱 Tokens para controle de autentição.
 
 ---
 
