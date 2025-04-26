@@ -14,6 +14,7 @@ module.exports = (app) => {
     }
 
     // Verifica se as credenciais estão corretas
+    
     const CREDENCIAL_CHAVE1 = "uber_report_key";
     const CREDENCIAL_CHAVE2 = "2025uberreport";
 
