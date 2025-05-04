@@ -28,6 +28,7 @@ app.use(logRequestBody);
 require("./tokenJwt")(app); // Importa e registra a rota de geração de token
 
 // Banco de Dados
+
 var db = new sqlite3.Database(CAMINHO_DB);
 
 db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -52,6 +53,31 @@ db.run(`CREATE TABLE IF NOT EXISTS alertas (
   longitude        REAL    NOT NULL,
   fk_idUser        INTEGER REFERENCES users (idUser) NOT NULL
 )`);
+
+// Validações dos alertas
+
+const INTERVALO_CHECAGEM_MS = 5 * 60 * 1000; // Checa a cada 5 minutos
+
+setInterval(() => {
+  const agora = new Date();
+  const limiteISO = new Date(agora.getTime() - 30 * 60000).toISOString();
+
+  console.log("⏳ Verificando alertas antigos...");
+
+  const sqlDelete = `DELETE FROM alertas WHERE dataHoraAlerta <= ?`;
+
+  db.run(sqlDelete, [limiteISO], function (err) {
+    if (err) {
+      console.error("Erro ao deletar alertas antigos:", err.message);
+    } else if (this.changes > 0) {
+      console.log(
+        `🗑️ ${this.changes} alerta(s) com mais de 30 minutos foram deletados.`
+      );
+    } else {
+      console.log("✅ Nenhum alerta antigo encontrado.");
+    }
+  });
+}, INTERVALO_CHECAGEM_MS);
 
 // Buscando usuários
 
