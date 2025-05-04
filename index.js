@@ -624,7 +624,7 @@ app.post("/login", (req, res) => {
         console.log(`[LOG] Login realizado com sucesso! Gerando token JWT...`);
         // Gera o token JWT
         const token = jwt.sign({ idUser: user.idUser }, SECRET_KEY, {
-          expiresIn: "1m", // Token expira em 1 hora
+          expiresIn: "60m", // Token expira em 1 hora
         });
 
         console.log(`[LOG] Login realizado com sucesso!`);
