@@ -56,11 +56,11 @@ db.run(`CREATE TABLE IF NOT EXISTS alertas (
 
 // Validações dos alertas
 
-const INTERVALO_CHECAGEM_MS = 5 * 60 * 1000; // Checa a cada 5 minutos
+const INTERVALO_CHECAGEM_MS = 1 * 60 * 1000; // Checa a cada 1 minutos
 
 setInterval(() => {
   const agora = new Date();
-  const limiteISO = new Date(agora.getTime() - 30 * 60000).toISOString();
+  const limiteISO = new Date(agora.getTime() - 1 * 60000).toISOString();
 
   console.log("⏳ Verificando alertas antigos...");
 
