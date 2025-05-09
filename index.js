@@ -13,7 +13,7 @@ require("dotenv").config(); // Carrega as variáveis de ambiente do arquivo .env
 
 const SECRET_KEY = process.env.SECRET_KEY_JWT;
 
-var port = process.env.PORT || 3002;
+var port = process.env.PORT || 3000;
 var CAMINHO_DB = "uberDB.db";
 
 const { criptografar, descriptografar } = require("./criptografia"); // Importa as funções de criptografia
@@ -32,16 +32,17 @@ require("./tokenJwt")(app); // Importa e registra a rota de geração de token
 var db = new sqlite3.Database(CAMINHO_DB);
 
 db.run(`CREATE TABLE IF NOT EXISTS users (
-    idUser    INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
-    nome      TEXT    NOT NULL,
-    sobrenome TEXT    NOT NULL,
-    email     TEXT    NOT NULL,
-    cpf       INTEGER UNIQUE NOT NULL,
-    senha     TEXT    NOT NULL,
-    telefone  INTEGER NOT NULL,
-    tipo      TEXT    NOT NULL,
-    cnh       INTEGER NULL,
-    validade  TEXT    NULL
+    idUser            INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+    nome              TEXT    NOT NULL,
+    sobrenome         TEXT    NOT NULL,
+    email             TEXT    NOT NULL,
+    cpf               INTEGER UNIQUE NOT NULL,
+    senha             TEXT    NOT NULL,
+    telefone          INTEGER NOT NULL,
+    tipo              TEXT    NOT NULL,
+    cnh               INTEGER NULL,
+    validade          TEXT    NULL,
+    contatoEmergencia INTEGER NULL
 )`);
 
 db.run(`CREATE TABLE IF NOT EXISTS alertas (
@@ -108,7 +109,7 @@ app.get("/users/:id", autenticarToken, function (req, res) {
 
     // Criptografa os dados do usuário antes de enviá-los
     const usuarioCriptografado = {
-      idUser: criptografar(row.idUser.toString()),
+      idUser,
       nome: criptografar(row.nome),
       sobrenome: criptografar(row.sobrenome),
       email: criptografar(row.email),
@@ -117,6 +118,9 @@ app.get("/users/:id", autenticarToken, function (req, res) {
       tipo: criptografar(row.tipo),
       cnh: row.cnh ? criptografar(row.cnh.toString()) : null,
       validade: row.validade ? criptografar(row.validade) : null,
+      contatoEmergencia: row.contatoEmergencia
+        ? criptografar(row.contatoEmergencia.toString())
+        : null,
     };
 
     res.json(usuarioCriptografado);
@@ -217,8 +221,6 @@ app.post("/users", async function (req, res) {
 
 app.put("/users/:id", autenticarToken, async function (req, res) {
   const idUser = req.params.id; // Pega o ID da URL
-  const { nome, sobrenome, email, cpf, senha, telefone, tipo, cnh, validade } =
-    req.body;
 
   try {
     // Verifica se o usuário existe
@@ -234,12 +236,23 @@ app.put("/users/:id", autenticarToken, async function (req, res) {
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
-    // Criptografa os campos sensíveis apenas se forem enviados
-    const hashSenha = senha ? await bcrypt.hash(senha, saltRounds) : user.senha;
-    const hashCpf = cpf
-      ? await bcrypt.hash(cpf.toString(), saltRounds)
-      : user.cpf;
-    const hashEmail = email ? await bcrypt.hash(email, saltRounds) : user.email;
+    // Descriptografa os dados enviados no corpo da requisição
+    const nome = req.body.nome ? descriptografar(req.body.nome) : user.nome;
+    const sobrenome = req.body.sobrenome
+      ? descriptografar(req.body.sobrenome)
+      : user.sobrenome;
+    const email = req.body.email ? descriptografar(req.body.email) : user.email;
+    const telefone = req.body.telefone
+      ? descriptografar(req.body.telefone)
+      : user.telefone;
+    const tipo = req.body.tipo ? req.body.tipo : user.tipo;
+    const cnh = req.body.cnh ? descriptografar(req.body.cnh) : user.cnh;
+    const validade = req.body.validade
+      ? descriptografar(req.body.validade)
+      : user.validade;
+    const contatoEmergencia = req.body.contatoEmergencia
+      ? descriptografar(req.body.contatoEmergencia)
+      : user.contatoEmergencia;
 
     // Monta a query dinamicamente com os campos enviados
     const campos = [];
@@ -255,15 +268,7 @@ app.put("/users/:id", autenticarToken, async function (req, res) {
     }
     if (email) {
       campos.push("email = ?");
-      valores.push(hashEmail);
-    }
-    if (cpf) {
-      campos.push("cpf = ?");
-      valores.push(hashCpf);
-    }
-    if (senha) {
-      campos.push("senha = ?");
-      valores.push(hashSenha);
+      valores.push(email);
     }
     if (telefone) {
       campos.push("telefone = ?");
@@ -280,6 +285,10 @@ app.put("/users/:id", autenticarToken, async function (req, res) {
     if (validade) {
       campos.push("validade = ?");
       valores.push(validade);
+    }
+    if (contatoEmergencia) {
+      campos.push("contatoEmergencia = ?");
+      valores.push(contatoEmergencia);
     }
 
     // Adiciona o ID do usuário no final dos valores
@@ -303,6 +312,47 @@ app.put("/users/:id", autenticarToken, async function (req, res) {
     res
       .status(500)
       .json({ error: "Erro ao atualizar usuário", details: err.message });
+  }
+});
+
+// Rota para deletar um usuário
+
+app.delete("/users/:id", autenticarToken, async function (req, res) {
+  const idUser = req.params.id; // Pega o ID da URL
+
+  try {
+    // Valida se o ID é um número
+    if (isNaN(idUser)) {
+      return res.status(400).json({ error: "ID do usuário inválido." });
+    }
+
+    // Verifica se o usuário existe
+    const user = await new Promise((resolve, reject) => {
+      const sqlBuscaUser = `SELECT * FROM users WHERE idUser = ?`;
+      db.get(sqlBuscaUser, [idUser], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    // Deleta o usuário
+    await new Promise((resolve, reject) => {
+      const sqlDelete = `DELETE FROM users WHERE idUser = ?`;
+      db.run(sqlDelete, [idUser], function (err) {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    res.json({ message: "Usuário deletado com sucesso!" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Erro ao deletar usuário", details: err.message });
   }
 });
 
