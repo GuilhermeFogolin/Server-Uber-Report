@@ -57,7 +57,7 @@ db.run(`CREATE TABLE IF NOT EXISTS alertas (
 
 // Validações dos alertas
 
-const INTERVALO_CHECAGEM_MS = 1 * 60 * 1000; // Checa a cada 1 minuto
+const INTERVALO_CHECAGEM_MS = 5 * 60 * 1000; // Checa a cada 1 minuto
 
 setInterval(() => {
   const agora = new Date();
