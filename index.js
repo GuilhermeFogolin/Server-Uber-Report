@@ -13,7 +13,7 @@ require("dotenv").config(); // Carrega as variáveis de ambiente do arquivo .env
 
 const SECRET_KEY = process.env.SECRET_KEY_JWT;
 
-var port = process.env.PORT || 3000;
+var port = 5000;
 var CAMINHO_DB = "uberDB.db";
 
 const { criptografar, descriptografar } = require("./criptografia"); // Importa as funções de criptografia
